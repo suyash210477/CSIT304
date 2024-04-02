@@ -4,14 +4,16 @@ from OpenGL.GLU import *
 from math import *
 
 # Initialize global variables
-# control the position of the car
-car_pos_x = -0.7
-car_pos_y = -0.9
+car_pos_x = 0.0 # car position on x-axis
+car_pos_y = -0.9 # car position on y-axis
+car_speed = 0.01  # Initial speed of the car
 light_state = "green"  # Initial state of the traffic light
 light_timer = 0  # Timer to change traffic light state
+green_duration = 20  # Duration of green light in terms of update cycles
+yellow_duration = 10  # Duration of yellow light
+red_duration = 20  # Duration of red light
 
 def draw_circle(x, y, radius, color):
-    """Draws a filled circle with the given specifications."""
     glBegin(GL_POLYGON)
     glColor3f(*color)
     for i in range(100):
@@ -20,13 +22,11 @@ def draw_circle(x, y, radius, color):
     glEnd()
 
 def car():
-    """Draws the car at its current position."""
     global car_pos_x, car_pos_y
     car_width = 0.05
     car_length = 0.1
-
-    # Car body
-    glColor3f(0.0, 0.0, 1.0)
+    
+    glColor3f(0.0, 0.0, 1.0)  # Car body color
     glBegin(GL_QUADS)
     glVertex2f(car_pos_x - car_width, car_pos_y - car_length)
     glVertex2f(car_pos_x + car_width, car_pos_y - car_length)
@@ -34,74 +34,78 @@ def car():
     glVertex2f(car_pos_x - car_width, car_pos_y + car_length)
     glEnd()
 
-    # Car wheels
     wheel_radius = 0.015
-    for wx, wy in [(-0.8, -0.9), (0.8, -0.9), (-0.8, 0.9), (0.8, 0.9)]:
-        draw_circle(car_pos_x + wx * car_width, car_pos_y + wy * car_length, wheel_radius, (0, 0, 0))
+    glColor3f(0.0, 0.0, 0.0)  # Wheels color
+    # Wheels
+    draw_circle(car_pos_x - 0.03, car_pos_y - 0.08, wheel_radius, (0, 0, 0))
+    draw_circle(car_pos_x + 0.03, car_pos_y - 0.08, wheel_radius, (0, 0, 0))
+    draw_circle(car_pos_x - 0.03, car_pos_y + 0.08, wheel_radius, (0, 0, 0))
+    draw_circle(car_pos_x + 0.03, car_pos_y + 0.08, wheel_radius, (0, 0, 0))
 
-    # Windshield
-    glColor4f(0.7, 0.9, 1.0, 0.5)
-    glBegin(GL_QUADS)
-    glVertex2f(car_pos_x - car_width * 0.5, car_pos_y + car_length * 0.5)
-    glVertex2f(car_pos_x + car_width * 0.5, car_pos_y + car_length * 0.5)
-    glVertex2f(car_pos_x + car_width * 0.3, car_pos_y + car_length * 0.8)
-    glVertex2f(car_pos_x - car_width * 0.3, car_pos_y + car_length * 0.8)
-    glEnd()
-
+# update function for setting animations
 def update(value):
-    """Updates the scene state."""
-    global car_pos_y, light_state, light_timer
+    global car_pos_y, light_state, light_timer, green_duration, yellow_duration, red_duration, car_speed
+    
+    # Increment the timer
     light_timer += 1
 
-    # Change the light state based on the timer
-    if light_timer >= 100:
-        if light_state == "green":
-            light_state = "yellow"
-        elif light_state == "yellow":
-            light_state = "red"
-        elif light_state == "red":
-            light_state = "green"
-        light_timer = 0  # Reset timer
-
-    # Move the car only if the light is green
+    # Check the state of the traffic light and adjust car speed
     if light_state == "green":
-        car_pos_y += 0.01
-        if car_pos_y > 1.0:
-            car_pos_y = -0.9  # Reset car position
+        car_speed = 0.01  # Normal speed
+    elif light_state == "yellow":
+        car_speed = 0.005  # Slower speed
+    else:  # light_state is "red"
+        car_speed = 0  # Stop
 
+    # Transition from green to yellow
+    if light_state == "green" and light_timer > green_duration:
+        light_state = "yellow"
+        light_timer = 0  # Reset timer for the yellow state
+
+    # Transition from yellow to red
+    elif light_state == "yellow" and light_timer > yellow_duration:
+        light_state = "red"
+        light_timer = 0  # Reset timer for the red state
+
+    # Transition from red back to green
+    elif light_state == "red" and light_timer > red_duration:
+        light_state = "green"
+        light_timer = 0  # Reset timer for the green state
+
+    # Move the car based on the current speed
+    car_pos_y += car_speed
+    if car_pos_y > 1.0:
+        car_pos_y = -0.9  # Reset car position after it moves off the screen
+    
     glutPostRedisplay()
     glutTimerFunc(100, update, 0)
 
 def traffic_light():
-    """Draws the traffic light, changing colors based on its state."""
     global light_state
-    colors = {
-        "red": ((1, 0, 0), (0.3, 0.3, 0), (0, 0.3, 0)),
-        "yellow": ((0.3, 0, 0), (1, 1, 0), (0, 0.3, 0)),
-        "green": ((0.3, 0, 0), (0.3, 0.3, 0), (0, 1, 0)),
-    }
-    red, yellow, green = colors[light_state]
-    glPushMatrix() # save the state of the matrix
-    glTranslatef(0.7, 0.0, 0.0) # translate the traffic light 
-
-    # Draw the pole
-    glColor3f(0.0, 0.0, 0.0)
+    glPushMatrix()
+    glTranslatef(0.7, 0.0, 0.0)  # Move the traffic light to the right side
+    
+    glColor3f(0.0, 0.0, 0.0)  # Pole color
     glBegin(GL_QUADS)
     glVertex2f(-0.05, -0.3)
     glVertex2f(0.05, -0.3)
     glVertex2f(0.05, 0.6)
     glVertex2f(-0.05, 0.6)
-    
     glEnd()
+    
+    # Lights color based on state
+    red_light = (1, 0, 0) if light_state == "red" else (0.3, 0, 0)
+    yellow_light = (1, 1, 0) if light_state == "yellow" else (0.3, 0.3, 0)
+    green_light = (0, 1, 0) if light_state == "green" else (0, 0.3, 0)
 
-    # Draw lights
-    draw_circle(0.0, 0.4, 0.04, red)
-    draw_circle(0.0, 0.3, 0.04, yellow)
-    draw_circle(0.0, 0.2, 0.04, green)
+    draw_circle(0.0, 0.4, 0.04, red_light)
+    draw_circle(0.0, 0.3, 0.04, yellow_light)
+    draw_circle(0.0, 0.2, 0.04, green_light)
+    
+    glPopMatrix()
 
 def road():
-    """Draws the road and the lane markings."""
-    glColor3f(0.3, 0.3, 0.3)
+    glColor3f(0.3, 0.3, 0.3)  # Road color
     glBegin(GL_QUADS)
     glVertex2f(-0.8, -1.0)
     glVertex2f(-0.8, 1.0)
@@ -109,7 +113,7 @@ def road():
     glVertex2f(0.8, -1.0)
     glEnd()
 
-    glColor3f(1.0, 1.0, 1.0)
+    glColor3f(1.0, 1.0, 1.0)  # Lines color
     glLineWidth(2)
     glBegin(GL_LINES)
     for i in range(-10, 11, 2):
@@ -118,7 +122,6 @@ def road():
     glEnd()
 
 def display():
-    """Display callback for drawing the scene."""
     glClear(GL_COLOR_BUFFER_BIT)
     glLoadIdentity()
     road()
@@ -127,7 +130,6 @@ def display():
     glFlush()
 
 def main():
-    """Main function to set up OpenGL."""
     glutInit(sys.argv)
     glutInitDisplayMode(GLUT_RGB)
     glutInitWindowSize(400, 400)
