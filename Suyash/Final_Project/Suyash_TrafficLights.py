@@ -6,7 +6,7 @@ from math import *
 # Initialize global variables
 car_pos_x = 0.0 # car position on x-axis
 car_pos_y = -0.9 # car position on y-axis
-car_speed = 0.01  # Initial speed of the car
+car_speed = 0.1  # Initial speed of the car
 light_state = "green"  # Initial state of the traffic light
 light_timer = 0  # Timer to change traffic light state
 green_duration = 20  # Duration of green light in terms of update cycles
