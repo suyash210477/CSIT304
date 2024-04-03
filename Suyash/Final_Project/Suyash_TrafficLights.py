@@ -4,14 +4,14 @@ from OpenGL.GLU import *
 from math import *
 
 # Initialize global variables
-car_pos_x = 0.0 # car position on x-axis
-car_pos_y = -0.9 # car position on y-axis
-car_speed = 0.1  # Initial speed of the car
-light_state = "green"  # Initial state of the traffic light
-light_timer = 0  # Timer to change traffic light state
-green_duration = 20  # Duration of green light in terms of update cycles
-yellow_duration = 10  # Duration of yellow light
-red_duration = 20  # Duration of red light
+car_pos_x = 0.0         # car position on x-axis
+car_pos_y = -0.9        # car position on y-axis
+car_speed = 0.1         # Initial speed of the car
+light_state = "green"   # Initial state of the traffic light
+light_timer = 0         # Timer to change traffic light state
+green_duration = 20     # Duration of green light in terms of update cycles
+yellow_duration = 10    # Duration of yellow light
+red_duration = 20       # Duration of red light
 
 def draw_circle(x, y, radius, color):
     glBegin(GL_POLYGON)
@@ -41,6 +41,31 @@ def car():
     draw_circle(car_pos_x + 0.03, car_pos_y - 0.08, wheel_radius, (0, 0, 0))
     draw_circle(car_pos_x - 0.03, car_pos_y + 0.08, wheel_radius, (0, 0, 0))
     draw_circle(car_pos_x + 0.03, car_pos_y + 0.08, wheel_radius, (0, 0, 0))
+
+def windshield():
+    # Ensure blending is enabled for transparency
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    # Windshield color (light blue with some transparency)
+    glColor4f(0.5, 0.8, 0.9, 0.5)  # RGBA
+    
+    # Adjust these values to fit the windshield within your car model
+    windshield_width = 0.03
+    windshield_height = 0.06
+    car_center_x = car_pos_x            # Assuming car_pos_x is the center of your car
+    car_center_y = car_pos_y + 0.04     # Adjust based on the car's y position
+    
+    # Draw the windshield
+    glBegin(GL_QUADS)
+    glVertex2f(car_center_x - windshield_width, car_center_y)
+    glVertex2f(car_center_x + windshield_width, car_center_y)
+    glVertex2f(car_center_x + windshield_width, car_center_y + windshield_height)
+    glVertex2f(car_center_x - windshield_width, car_center_y + windshield_height)
+    glEnd()
+    
+    # Disable blending if not needed for other parts
+    glDisable(GL_BLEND)
 
 # update function for setting animations
 def update(value):
@@ -127,6 +152,7 @@ def display():
     road()
     traffic_light()
     car()
+    windshield()
     glFlush()
 
 def main():
