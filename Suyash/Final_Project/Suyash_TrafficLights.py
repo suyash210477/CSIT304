@@ -48,12 +48,12 @@ def windshield():
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     # Windshield color (light blue with some transparency)
-    glColor4f(0.5, 0.8, 0.9, 0.5)  # RGBA
+    glColor4f(0.5, 0.8, 0.9, 0.5)  # cyan RGBA
     
     # Adjust these values to fit the windshield within your car model
     windshield_width = 0.03
     windshield_height = 0.06
-    car_center_x = car_pos_x            # Assuming car_pos_x is the center of your car
+    car_center_x = car_pos_x            # car_pos_x is the center of your car
     car_center_y = car_pos_y + 0.04     # Adjust based on the car's y position
     
     # Draw the windshield
